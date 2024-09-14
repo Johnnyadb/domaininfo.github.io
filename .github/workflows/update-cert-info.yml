@@ -1,0 +1,50 @@
+name: Update Domain Cert Info
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 每小时运行一次
+  workflow_dispatch:
+    inputs:
+      domains:
+        description: 'Space-separated list of domains to fetch the certificate for'
+        required: false  # 使其成为可选项
+        default: ''      # 默认值为空
+
+jobs:
+  update-cert-info:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Enable debug logging
+      run: echo "ACTIONS_RUNNER_DEBUG=true" >> $GITHUB_ENV
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run cert updater script
+      run: |
+        if [ "${{ inputs.domains }}" != "" ]; then
+          node index.js "${{ inputs.domains }}"  # 将输入参数传递给脚本
+        else
+          node index.js  # 如果没有传入参数，则运行默认的域名列表
+        fi
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.email "JohnAction@qq.com"
+        git config --global user.name "JohnAction"
+        git status  # 检查工作目录状态
+        git pull
+        git add .
+        git commit -m "Updated domain cert info"
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }} 2>&1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

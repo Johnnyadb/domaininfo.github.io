@@ -1,0 +1,12 @@
+{
+  "name": "domain-cert-updater",
+  "version": "1.0.0",
+  "description": "A GitHub Action to update domain certificate info",
+  "main": "index.js",
+  "author": "John",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  }
+}
