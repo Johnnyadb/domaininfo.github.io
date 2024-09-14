@@ -22,7 +22,7 @@ const asyncGetCertInfo = async (domain) => {
         const sha1 = crypto.createHash('sha1').update(Buffer.from(cert.raw)).digest('hex').toLowerCase();
         const certData = {
           sha1,
-          updateAt: new Date().toISOString() // 存储获取信息的当前时间
+          // updateAt: new Date().toISOString() // 存储获取信息的当前时间
         };
         resolve(certData);
       } else {
