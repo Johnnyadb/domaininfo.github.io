@@ -4,7 +4,10 @@ const fs = require('fs');
 const path = require('path');
 
 // 域名列表
-const defaultDomains = ['interest.s0-v1-5b5bed4a.top'];
+const defaultDomains = [
+  'interest.s0-v1-5b5bed4a.top',
+  'domaininfo.mjsj.sbs',
+];
 
 // 获取证书的 SHA1
 const asyncGetCertInfo = async (domain) => {
