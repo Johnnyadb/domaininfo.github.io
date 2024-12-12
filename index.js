@@ -7,6 +7,8 @@ const path = require('path');
 const defaultDomains = [
   'interest.s0-v1-5b5bed4a.top',
   'domaininfo.mjsj.sbs',
+  'www.baidu.com',
+  'www.apple.com',
 ];
 
 // 获取证书的 SHA1
