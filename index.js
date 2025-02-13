@@ -3,13 +3,17 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-// 域名列表
-const defaultDomains = [
-  'interest.s0-v1-5b5bed4a.top',
-  'domaininfo.mjsj.sbs',
-  'www.baidu.com',
-  'www.apple.com',
-];
+// 从配置文件读取域名列表
+const loadDefaultDomains = () => {
+  try {
+    const domainsPath = path.join(__dirname, 'domains.txt');
+    const content = fs.readFileSync(domainsPath, 'utf8');
+    return content.split('\n').filter(domain => domain.trim() !== '');
+  } catch (error) {
+    console.error('Error reading domains.txt:', error.message);
+    return [];
+  }
+};
 
 // 获取证书的 SHA1
 const asyncGetCertInfo = async (domain) => {
@@ -42,13 +46,34 @@ const asyncGetCertInfo = async (domain) => {
   });
 };
 
+// 将新域名添加到配置文件
+const addDomainToConfig = (domain) => {
+  try {
+    const domainsPath = path.join(__dirname, 'domains.txt');
+    const existingDomains = loadDefaultDomains();
+    
+    // 检查域名是否已存在
+    if (!existingDomains.includes(domain)) {
+      fs.appendFileSync(domainsPath, `\n${domain}`);
+      console.log(`Added ${domain} to domains.txt`);
+    }
+  } catch (error) {
+    console.error('Error updating domains.txt:', error.message);
+  }
+};
+
 // 更新域名证书信息
-const updateCertInfo = async (domain) => {
+const updateCertInfo = async (domain, isFromCommandLine = false) => {
   try {
     const certInfo = await asyncGetCertInfo(domain);
     const filePath = path.join(__dirname, `${domain}.json`);
     fs.writeFileSync(filePath, JSON.stringify(certInfo, null, 2));
     console.log(`Updated cert info for ${domain}: ${certInfo.sha1}`);
+    
+    // 如果是通过命令行参数传入的域名，则添加到配置文件
+    if (isFromCommandLine) {
+      addDomainToConfig(domain);
+    }
   } catch (error) {
     console.error(`Failed to update cert info for ${domain}:`, error.message);
   }
@@ -57,20 +82,22 @@ const updateCertInfo = async (domain) => {
 // 解析传递的域名或使用默认列表
 const runUpdate = async () => {
   let domains;
+  let isFromCommandLine = false;
 
   // 获取从命令行传递的所有域名参数
   const domainArgs = process.argv.slice(2);  // 获取从第3个参数开始的所有参数
   if (domainArgs.length > 0) {
     // 如果传入了域名参数，使用这些域名
     domains = domainArgs;
+    isFromCommandLine = true;
   } else {
-    // 如果没有传入域名，使用默认域名列表
-    domains = defaultDomains;
+    // 如果没有传入域名，使用配置文件中的域名列表
+    domains = loadDefaultDomains();
   }
 
   // 遍历域名列表并更新每个域名的证书信息
   for (const domain of domains) {
-    await updateCertInfo(domain);
+    await updateCertInfo(domain.trim(), isFromCommandLine);
   }
 };
 
